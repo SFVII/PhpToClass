@@ -2,18 +2,23 @@
 		/**************************************
 		***************************************
 		****DB To Class Generator**************
-		****Licence OpenSouce Februrary 2016*** 
-		****http://dev.nippon.wtf************** 
+		****Licence OpenSouce MAY 2016		*** 
+		****http://dev.nippon.wtf *************
 		****Contact: brice@nippon.wtf**********
 		***************************************
 		**************************************/
 
 	class {_name} {_extends} {_xtendname}{
+
 		public {field}
 
+		private $update;
 		private $result;
 
 		function __construct(){
+
+			// Use this varible for update time 
+			$this->update = date('Y-m-d H:i:s');
 
 		}
 
@@ -26,11 +31,19 @@
 			}
 		}
 
-		private function setUnset(){
+		private function result2array($result = NULL){
+			$array = array();
+			while($tr = mysqli_fetch_array($result)){
+				$array[] = $tr;
+			}
+			return $array;
+		}
+
+		public function setUnset(){
 			{unset}
 		}
 
-		private function update(){
+		public function update(){
 			//Have to customize by yourself
 		}
 
@@ -38,17 +51,40 @@
 			$this->query("INSERT INTO {_table}({_qfield}) VALUES ({_qvalues})");
 		}
 
-		private function remove(){
+		public function remove(){
 			if (is_int($this->_{primary}) && $this->_{primary} > 0){
 				$this->query("DELETE FROM {_table} WHERE {primary}='".$this->_{primary}."'");
 			}
 		}
 
-		private function load(){
+		public function load($kind = 'array'){
 			if (is_int($this->_{primary}) && $this->_{primary} > 0){
 				$this->result = $this->query("SELECT {_qfield} FROM {_table} WHERE {primary}='".$this->_{primary}."'");
 			}
+			if (strtolower($kind) == 'array')
+				return $this->result2array($this->result);
+			else if (strtolower($kind) == 'json')
+				return json_encode($this->result2array($this->result));
 		} 
+
+		public function loadAll($kind = 'array'){ // By default array but you can set it to JSON
+			$this->result = $this->query("SELECT {_qfield} FROM {_table}");
+			if (strtolower($kind) == 'array')
+				return $this->result2array($this->result);
+			else if (strtolower($kind) == 'json')
+				return json_encode($this->result2array($this->result));
+
+		}
+
+		public function search(){
+			//Have to customize by yourself
+		}
+
+		public function count(){
+			return mysqli_num_rows($this->result);
+		}
+
+		// Check and Secure Data
 
 		{_init_function}
 	}
